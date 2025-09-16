@@ -1,20 +1,19 @@
 <?php
+require_once("../config/db.php");
+
 if($_SERVER['REQUEST_METHOD'] == 'POST'){
     $usuario = $_POST['usuario'];
-    $contraseña = password_hash($_POST['contraseña'], PASSWORD_DEFAULT); // encripta la contraseña
-
-    $conn = new mysqli('localhost', 'root', '', 'mi_proyecto');
-    if($conn->connect_error) die("Error de conexión: " . $conn->connect_error);
+    $contraseña = password_hash($_POST['contraseña'], PASSWORD_DEFAULT);
 
     $stmt = $conn->prepare("INSERT INTO usuarios (usuario, contraseña) VALUES (?, ?)");
     $stmt->bind_param("ss", $usuario, $contraseña);
+
     if($stmt->execute()){
-        echo "Usuario registrado!";
+        echo "Usuario registrado correctamente <a href='login.php'>Iniciar sesión</a>";
     } else {
         echo "Error: " . $stmt->error;
     }
     $stmt->close();
-    $conn->close();
 }
 ?>
 
