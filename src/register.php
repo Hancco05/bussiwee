@@ -1,21 +1,28 @@
 <?php
-require_once("../config/db.php");
+include '../config/db.php';
 
-if($_SERVER['REQUEST_METHOD'] == 'POST'){
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $usuario = $_POST['usuario'];
-    $contraseña = password_hash($_POST['contraseña'], PASSWORD_DEFAULT);
+    $pass = $_POST['contraseña'];
 
-    $stmt = $conn->prepare("INSERT INTO usuarios (usuario, contraseña) VALUES (?, ?)");
-    $stmt->bind_param("ss", $usuario, $contraseña);
+    // Generar hash
+    $passHash = password_hash($pass, PASSWORD_DEFAULT);
 
-    if($stmt->execute()){
-        echo "Usuario registrado correctamente <a href='login.php'>Iniciar sesión</a>";
+    // Insertar usuario en la BD
+    $sql = "INSERT INTO usuarios (usuario, contraseña) VALUES (?, ?)";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ss", $usuario, $passHash);
+
+    if ($stmt->execute()) {
+        echo "✅ Usuario registrado correctamente";
+        echo "<br><a href='../public/index.php'>Ir al login</a>";
     } else {
-        echo "Error: " . $stmt->error;
+        echo "❌ Error al registrar: " . $conn->error;
     }
-    $stmt->close();
 }
 ?>
+
+
 
 <form method="post">
     <input type="text" name="usuario" placeholder="Usuario" required>

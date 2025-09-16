@@ -1,29 +1,35 @@
 <?php
 session_start();
-require_once("../config/db.php");
+include '../config/db.php';
 
-if($_SERVER['REQUEST_METHOD'] == 'POST'){
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $usuario = $_POST['usuario'];
     $pass = $_POST['contraseña'];
 
-    $stmt = $conn->prepare("SELECT id, contraseña FROM usuarios WHERE usuario=?");
+    $sql = "SELECT * FROM usuarios WHERE usuario = ?";
+    $stmt = $conn->prepare($sql);
     $stmt->bind_param("s", $usuario);
     $stmt->execute();
-    $stmt->bind_result($id, $hash);
+    $result = $stmt->get_result();
 
-    if($stmt->fetch()){
-        if(password_verify($pass, $hash)){
-            $_SESSION['usuario_id'] = $id;
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+
+        // 🔹 DEBUG: muestra qué se recibe
+        echo "Contraseña ingresada: " . htmlspecialchars($pass) . "<br>";
+        echo "Hash en DB: " . htmlspecialchars($row['contraseña']) . "<br>";
+
+        if (password_verify($pass, $row['contraseña'])) {
+            $_SESSION['usuario_id'] = $row['id'];
             $_SESSION['usuario_nombre'] = $usuario;
             header("Location: dashboard.php");
             exit;
         } else {
-            echo "Contraseña incorrecta";
+            echo "❌ Contraseña incorrecta";
         }
     } else {
-        echo "Usuario no encontrado";
+        echo "❌ Usuario no encontrado";
     }
-    $stmt->close();
 }
 ?>
 
