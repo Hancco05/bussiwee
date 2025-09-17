@@ -1,27 +1,35 @@
-/* Reset básico */
+/* Reset b�sico */
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: Arial, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Fondo y centrar formularios */
+/* Fondo */
 body {
-    background-color: #f2f2f2;
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    color: #333;
 }
 
-/* Estilo del formulario */
+/* Formulario login/registro */
 form {
-    background-color: #fff;
-    padding: 30px 40px;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    background-color: #ffffffdd;
+    /* blanco con transparencia */
+    padding: 40px 30px;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
     width: 350px;
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+form:hover {
+    transform: translateY(-5px);
 }
 
 /* Inputs */
@@ -29,69 +37,82 @@ input[type="text"],
 input[type="password"] {
     width: 100%;
     padding: 12px 15px;
-    margin: 10px 0 20px 0;
+    margin: 12px 0 20px 0;
     border: 1px solid #ccc;
-    border-radius: 5px;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border 0.3s;
 }
 
-/* Botón */
+input[type="text"]:focus,
+input[type="password"]:focus {
+    border: 2px solid #2575fc;
+    outline: none;
+}
+
+/* Botones */
 button {
     width: 100%;
     padding: 12px;
-    background-color: #4CAF50;
+    background-color: #2575fc;
     border: none;
-    border-radius: 5px;
-    color: white;
+    border-radius: 8px;
+    color: #fff;
     font-size: 16px;
     cursor: pointer;
-    transition: 0.3s;
+    transition: background-color 0.3s, transform 0.2s;
 }
 
 button:hover {
-    background-color: #45a049;
+    background-color: #1a5bd6;
+    transform: scale(1.03);
 }
 
 /* Links */
-a {
-    color: #4CAF50;
+p a {
+    color: #6a11cb;
     text-decoration: none;
+    font-weight: bold;
 }
 
-a:hover {
+p a:hover {
     text-decoration: underline;
 }
 
-/* Mensajes */
-form p {
-    margin-top: 15px;
-    text-align: center;
-}
-
+/* Dashboard */
 .dashboard-container {
-    background-color: #fff;
-    padding: 40px 50px;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    width: 400px;
+    background-color: #ffffffdd;
+    padding: 50px 60px;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    width: 450px;
     margin: 50px auto;
     text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.dashboard-container:hover {
+    transform: translateY(-5px);
 }
 
 .dashboard-container h1 {
     margin-bottom: 20px;
+    color: #2575fc;
 }
 
 .dashboard-container a {
     display: inline-block;
-    margin-top: 20px;
-    padding: 10px 20px;
+    margin-top: 25px;
+    padding: 12px 25px;
     background-color: #f44336;
-    color: white;
-    border-radius: 5px;
+    color: #fff;
+    border-radius: 8px;
     text-decoration: none;
-    transition: 0.3s;
+    font-weight: bold;
+    transition: background-color 0.3s, transform 0.2s;
 }
 
 .dashboard-container a:hover {
     background-color: #d32f2f;
+    transform: scale(1.05);
 }
