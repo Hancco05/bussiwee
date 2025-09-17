@@ -1,5 +1,8 @@
 <?php
+header('Content-Type: text/html; charset=ISO-8859-1');
+session_start();
 include '../config/db.php';
+
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $usuario = $_POST['usuario'];
