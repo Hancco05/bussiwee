@@ -21,9 +21,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         echo "Contrase√±a ingresada: " . htmlspecialchars($pass) . "<br>";
         echo "Hash en DB: " . htmlspecialchars($row['contrase√±a']) . "<br>";
 
-        if (password_verify($pass, $row['contrase√±a'])) {
+        if (password_verify($pass, $row['contraseÒa'])) {
             $_SESSION['usuario_id'] = $row['id'];
             $_SESSION['usuario_nombre'] = $usuario;
+            $_SESSION['usuario_rol'] = $row['rol']; // ?? Guardar rol en sesiÛn
             header("Location: dashboard.php");
             exit;
         } else {
