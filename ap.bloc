@@ -1,3 +1,18 @@
 actualizar project php sql
 
 cambios con iso 8859-1
+
+/mi_proyecto/
+|-- /config/
+|   |-- db.php
+|-- /public/
+|   |-- index.php      (Login)
+|   |-- registro.php
+|-- /src/
+|   |-- login.php
+|   |-- register.php
+|   |-- dashboard.php
+|   |-- admin_panel.php
+|   |-- gestionar_usuarios.php
+|-- /css/
+|   |-- style.css
