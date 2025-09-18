@@ -21,7 +21,7 @@ if (!isset($_SESSION['usuario_id'])) {
 
     <?php if ($_SESSION['usuario_rol'] === 'admin'): ?>
         <p>?? Tienes privilegios de administrador.</p>
-        <a href="admin_panel.php">Ir al Panel de Administración</a>
+        <a href="admin_panel.php">Ir al Panel de Administraci&oacute;n</a>
     <?php else: ?>
         <p>?? Eres un usuario normal.</p>
     <?php endif; ?>
@@ -29,6 +29,6 @@ if (!isset($_SESSION['usuario_id'])) {
     <a href="../public/index.php">Cerrar sesi&oacute;n</a>
 </div>
 
-
 </body>
 </html>
+
