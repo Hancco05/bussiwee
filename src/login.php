@@ -44,8 +44,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 ?>
 
 
-
-
 <form method="post">
     <input type="text" name="usuario" placeholder="Usuario" required>
     <input type="password" name="contraseña" placeholder="Contraseña" required>
