@@ -1,33 +1,49 @@
 <?php
 session_start();
-include '../config/db.php';
+require_once "../config/config.php";
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $usuario = $_POST['usuario'];
-    $pass = $_POST['contraseña'];
+// Si el formulario fue enviado
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $usuario = trim($_POST['usuario']);
+    $password = trim($_POST['password']);
 
-    $sql = "SELECT * FROM usuarios WHERE usuario = ?";
+    // Caso especial: admin/1234
+    if ($usuario === "admin" && $password === "1234") {
+        $_SESSION['usuario_id'] = 0; 
+        $_SESSION['usuario_nombre'] = "Administrador";
+        $_SESSION['usuario_rol'] = "admin";
+        header("Location: ../src/dashboard.php");
+        exit;
+    }
+
+    // Caso: usuario desde la base de datos
+    $sql = "SELECT id, usuario, password, rol FROM usuarios WHERE usuario = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("s", $usuario);
     $stmt->execute();
     $result = $stmt->get_result();
 
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        if (password_verify($pass, $row['contraseña'])) {
+    if ($row = $result->fetch_assoc()) {
+        // Verificamos la contraseña encriptada
+        if (password_verify($password, $row['password'])) {
             $_SESSION['usuario_id'] = $row['id'];
-            $_SESSION['usuario_nombre'] = $usuario;
+            $_SESSION['usuario_nombre'] = $row['usuario'];
             $_SESSION['usuario_rol'] = $row['rol'];
-            header("Location: dashboard.php");
+            header("Location: ../src/dashboard.php");
             exit;
         } else {
-            echo "? Contrase&ntilde;a incorrecta";
+            $error = "Contraseña incorrecta.";
         }
     } else {
-        echo "? Usuario no encontrado";
+        $error = "Usuario no encontrado.";
     }
+
+    $stmt->close();
+    $conn->close();
 }
 ?>
+
+
 
 
 <form method="post">

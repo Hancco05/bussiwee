@@ -1,6 +1,6 @@
 <?php
 session_start();
-if (!isset($_SESSION['usuario_id'])) {
+if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_rol'] !== 'usuario') {
     header("Location: ../public/index.php");
     exit;
 }
@@ -10,25 +10,11 @@ if (!isset($_SESSION['usuario_id'])) {
 <html lang="es">
 <head>
     <meta charset="ISO-8859-1">
-    <title>Dashboard</title>
-    <link rel="stylesheet" href="../css/style.css">
+    <title>Dashboard Usuario</title>
 </head>
 <body>
-
-<div class="dashboard-container">
-    <h1>Bienvenido, <?php echo htmlspecialchars($_SESSION['usuario_nombre'], ENT_QUOTES, 'ISO-8859-1'); ?> &#128075;</h1>
-    <p>Has ingresado correctamente al dashboard.</p>
-
-    <?php if ($_SESSION['usuario_rol'] === 'admin'): ?>
-        <p>?? Tienes privilegios de administrador.</p>
-        <a href="admin_panel.php">Ir al Panel de Administraci&oacute;n</a>
-    <?php else: ?>
-        <p>?? Eres un usuario normal.</p>
-    <?php endif; ?>
-
-    <a href="../public/index.php">Cerrar sesi&oacute;n</a>
-</div>
-
+<h1>Bienvenido <?php echo htmlspecialchars($_SESSION['usuario_nombre'], ENT_QUOTES, 'ISO-8859-1'); ?> ??</h1>
+<p>Solo puedes acceder a tu panel de usuario.</p>
+<a href="../public/index.php">Cerrar sesión</a>
 </body>
 </html>
-
