@@ -1,27 +1,40 @@
 <?php
-include '../config/db.php';
+require_once "../config/db.php";
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $usuario = $_POST['usuario'];
-    $pass = $_POST['contraseña'];
-    $rol = $_POST['rol']; // ?? Nuevo
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $usuario = trim($_POST['usuario']);
+    $password = trim($_POST['password']);
 
-    // Generar hash
-    $passHash = password_hash($pass, PASSWORD_DEFAULT);
+    if (!empty($usuario) && !empty($password)) {
+        $passwordHash = password_hash($password, PASSWORD_BCRYPT);
 
-    // Insertar usuario en la BD
-    $sql = "INSERT INTO usuarios (usuario, contraseña, rol) VALUES (?, ?, ?)";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sss", $usuario, $passHash, $rol);
+        // Verificar si existe
+        $stmt = $conn->prepare("SELECT id FROM usuarios WHERE usuario=?");
+        $stmt->bind_param("s", $usuario);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-    if ($stmt->execute()) {
-        echo "? Usuario registrado correctamente";
-        echo "<br><a href='../public/index.php'>Ir al login</a>";
+        if ($result->num_rows == 0) {
+            // Crear usuario normal (rol = usuario)
+            $stmt = $conn->prepare("INSERT INTO usuarios (usuario, password, rol) VALUES (?, ?, 'usuario')");
+            $stmt->bind_param("ss", $usuario, $passwordHash);
+            $stmt->execute();
+            $stmt->close();
+            $conn->close();
+
+            header("Location: ../public/index.php?registro=ok");
+            exit;
+        } else {
+            header("Location: ../public/index.php?error=Usuario ya existe");
+            exit;
+        }
     } else {
-        echo "? Error al registrar: " . $conn->error;
+        header("Location: ../public/index.php?error=Completa todos los campos");
+        exit;
     }
 }
 ?>
+
 
 <form method="post">
     <input type="text" name="usuario" placeholder="Usuario" required>
