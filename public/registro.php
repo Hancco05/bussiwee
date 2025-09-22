@@ -1,32 +1,53 @@
 <?php
-header("Content-Type: text/html; charset=ISO-8859-1");
-include '../config/db.php';
+require_once "../config/config.php";
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $usuario = $_POST['usuario'];
-    $pass = $_POST['contraseña'];
-    $rol = $_POST['rol'];
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $usuario = trim($_POST['usuario']);
+    $password = trim($_POST['password']);
 
-    $passHash = password_hash($pass, PASSWORD_DEFAULT);
+    if (!empty($usuario) && !empty($password)) {
+        // Encriptar la contraseña
+        $passwordHash = password_hash($password, PASSWORD_BCRYPT);
 
-    $sql = "INSERT INTO usuarios (usuario, contraseña, rol) VALUES (?, ?, ?)";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sss", $usuario, $passHash, $rol);
+        // Insertar en la BD
+        $sql = "INSERT INTO usuarios (usuario, password, rol) VALUES (?, ?, 'usuario')";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ss", $usuario, $passwordHash);
 
-    if ($stmt->execute()) {
-        echo "? Usuario registrado correctamente.<br><a href='../public/index.php'>Ir al login</a>";
+        if ($stmt->execute()) {
+            // ? Redirigir al login
+            header("Location: ../public/index.php?registro=ok");
+            exit;
+        } else {
+            $error = "Error al registrar usuario: " . $conn->error;
+        }
+
+        $stmt->close();
     } else {
-        echo "? Error al registrar: " . $conn->error;
+        $error = "Debes llenar todos los campos.";
     }
 }
+
+$conn->close();
 ?>
 
-<form method="post">
-    <input type="text" name="usuario" placeholder="Usuario" required>
-    <input type="password" name="contraseña" placeholder="Contrase&ntilde;a" required>
-    <select name="rol" required>
-        <option value="usuario">Usuario</option>
-        <option value="admin">Administrador</option>
-    </select>
-    <button type="submit">Registrar</button>
-</form>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="ISO-8859-1">
+    <title>Registro</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <form method="post" action="registro.php">
+        <input type="text" name="usuario" placeholder="Usuario" required>
+        <input type="password" name="password" placeholder="Contraseña" required>
+        <button type="submit">Registrarse</button>
+        <p>¿Ya tienes cuenta? <a href="../public/index.php">Inicia sesión aquí</a></p>
+    </form>
+
+    <?php if (isset($error)) : ?>
+        <p style="color:red;"><?php echo $error; ?></p>
+    <?php endif; ?>
+</body>
+</html>
