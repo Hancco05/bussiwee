@@ -1,5 +1,5 @@
 <?php
-require_once "../config/config.php";
+require_once "../config/db.php";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $usuario = trim($_POST['usuario']);
