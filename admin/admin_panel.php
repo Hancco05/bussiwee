@@ -1,44 +1,56 @@
 <?php
 session_start();
-include '../config/db.php';
 
-if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_rol'] !== 'admin') {
+// Verificar que sea admin
+if (!isset($_SESSION['usuario_nombre']) || $_SESSION['usuario_nombre'] !== 'admin') {
     header("Location: ../public/index.php");
     exit;
 }
 
-// Crear usuario
+include '../config/db.php';
+
+// --- Crear usuario ---
 if (isset($_POST['crear'])) {
-    $usuario = trim($_POST['usuario']);
-    $password = trim($_POST['contrasena']);
+    $usuario = $_POST['usuario'];
+    $pass = $_POST['contraseña'];
     $rol = $_POST['rol'];
 
-    if ($usuario && $password) {
-        $hash = password_hash($password, PASSWORD_BCRYPT);
-        $sql = "INSERT INTO usuarios (usuario, contrasena, rol) VALUES (?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sss", $usuario, $hash, $rol);
-        $stmt->execute();
-        $stmt->close();
+    $hash = password_hash($pass, PASSWORD_DEFAULT);
+    $stmt = $conn->prepare("INSERT INTO usuarios (usuario, contraseña, rol) VALUES (?, ?, ?)");
+    $stmt->bind_param("sss", $usuario, $hash, $rol);
+
+    if ($stmt->execute()) {
+        $msg = "✅ Usuario creado con éxito.";
+    } else {
+        $msg = "❌ Error al crear usuario: " . $conn->error;
     }
-    header("Location: admin_panel.php");
-    exit;
 }
 
-// Eliminar usuario
+// --- Eliminar usuario ---
 if (isset($_GET['eliminar'])) {
     $id = intval($_GET['eliminar']);
-    $sql = "DELETE FROM usuarios WHERE id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $id);
-    $stmt->execute();
-    $stmt->close();
-    header("Location: admin_panel.php");
-    exit;
+    $conn->query("DELETE FROM usuarios WHERE id = $id");
+    $msg = "🗑️ Usuario eliminado.";
 }
 
-// Listar usuarios
-$result = $conn->query("SELECT id, usuario, rol FROM usuarios");
+// --- Actualizar usuario ---
+if (isset($_POST['actualizar'])) {
+    $id = $_POST['id'];
+    $usuario = $_POST['usuario'];
+    $rol = $_POST['rol'];
+
+    $stmt = $conn->prepare("UPDATE usuarios SET usuario=?, rol=? WHERE id=?");
+    $stmt->bind_param("ssi", $usuario, $rol, $id);
+
+    if ($stmt->execute()) {
+        $msg = "✏️ Usuario actualizado.";
+    } else {
+        $msg = "❌ Error al actualizar.";
+    }
+}
+
+// --- Obtener lista de usuarios ---
+$result = $conn->query("SELECT * FROM usuarios");
 ?>
 
 <!DOCTYPE html>
@@ -50,34 +62,57 @@ $result = $conn->query("SELECT id, usuario, rol FROM usuarios");
 </head>
 <body>
 <div class="dashboard-container">
-    <h1>Panel de Administración 🔑</h1>
+    <h1>🔑 Panel de Administración</h1>
+    <p><?php echo isset($msg) ? $msg : ""; ?></p>
 
-    <h2>Crear Usuario</h2>
-    <form method="post" action="">
+    <!-- Formulario para crear usuario -->
+    <h2>➕ Crear Usuario</h2>
+    <form method="post">
         <input type="text" name="usuario" placeholder="Usuario" required>
-        <input type="password" name="contrasena" placeholder="Contraseña" required>
+        <input type="password" name="contraseña" placeholder="Contraseña" required>
         <select name="rol">
-            <option value="usuario">Usuario</option>
-            <option value="admin">Admin</option>
+            <option value="user">Usuario</option>
+            <option value="admin">Administrador</option>
         </select>
         <button type="submit" name="crear">Crear</button>
     </form>
 
-    <h2>Lista de Usuarios</h2>
+    <hr>
+
+    <!-- Listado de usuarios -->
+    <h2>📋 Lista de Usuarios</h2>
     <table border="1" cellpadding="5">
-        <tr><th>ID</th><th>Usuario</th><th>Rol</th><th>Acciones</th></tr>
-        <?php while ($row = $result->fetch_assoc()) : ?>
+        <tr>
+            <th>ID</th>
+            <th>Usuario</th>
+            <th>Rol</th>
+            <th>Acciones</th>
+        </tr>
+        <?php while ($row = $result->fetch_assoc()): ?>
             <tr>
-                <td><?php echo $row['id']; ?></td>
-                <td><?php echo htmlspecialchars($row['usuario']); ?></td>
-                <td><?php echo $row['rol']; ?></td>
-                <td><a href="?eliminar=<?php echo $row['id']; ?>">Eliminar</a></td>
+                <form method="post">
+                    <td><?php echo $row['id']; ?></td>
+                    <td>
+                        <input type="text" name="usuario" value="<?php echo $row['usuario']; ?>">
+                    </td>
+                    <td>
+                        <select name="rol">
+                            <option value="user" <?php if ($row['rol'] === 'user') echo "selected"; ?>>Usuario</option>
+                            <option value="admin" <?php if ($row['rol'] === 'admin') echo "selected"; ?>>Administrador</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
+                        <button type="submit" name="actualizar">Actualizar</button>
+                        <a href="admin_panel.php?eliminar=<?php echo $row['id']; ?>" onclick="return confirm('¿Eliminar usuario?');">Eliminar</a>
+                    </td>
+                </form>
             </tr>
         <?php endwhile; ?>
     </table>
 
     <br>
-    <a href="../public/index.php">🔙 Volver al Login</a>
+    <a href="../public/index.php">🚪 Cerrar sesión</a>
 </div>
 </body>
 </html>
