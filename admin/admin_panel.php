@@ -10,12 +10,12 @@ if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_rol'] !== 'admin') {
 // Crear usuario
 if (isset($_POST['crear'])) {
     $usuario = trim($_POST['usuario']);
-    $password = trim($_POST['contraseña']);
+    $password = trim($_POST['contrasena']);
     $rol = $_POST['rol'];
 
     if ($usuario && $password) {
         $hash = password_hash($password, PASSWORD_BCRYPT);
-        $sql = "INSERT INTO usuarios (usuario, contraseña, rol) VALUES (?, ?, ?)";
+        $sql = "INSERT INTO usuarios (usuario, contrasena, rol) VALUES (?, ?, ?)";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("sss", $usuario, $hash, $rol);
         $stmt->execute();
@@ -55,7 +55,7 @@ $result = $conn->query("SELECT id, usuario, rol FROM usuarios");
     <h2>Crear Usuario</h2>
     <form method="post" action="">
         <input type="text" name="usuario" placeholder="Usuario" required>
-        <input type="password" name="contraseña" placeholder="Contraseña" required>
+        <input type="password" name="contrasena" placeholder="Contraseña" required>
         <select name="rol">
             <option value="usuario">Usuario</option>
             <option value="admin">Admin</option>
