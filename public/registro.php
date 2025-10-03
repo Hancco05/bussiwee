@@ -3,12 +3,12 @@ include '../config/db.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $usuario = trim($_POST['usuario']);
-    $pass = trim($_POST['contrasena']);
+    $pass = trim($_POST['password']);
 
     if (!empty($usuario) && !empty($pass)) {
         $passHash = password_hash($pass, PASSWORD_BCRYPT);
 
-        $sql = "INSERT INTO usuarios (usuario, contrasena, rol) VALUES (?, ?, 'usuario')";
+        $sql = "INSERT INTO usuarios (usuario, password, rol) VALUES (?, ?, 'usuario')";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("ss", $usuario, $passHash);
 
@@ -35,7 +35,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <body>
 <form method="post" action="">
     <input type="text" name="usuario" placeholder="Usuario" required>
-    <input type="password" name="contrasena" placeholder="Contraseña" required>
+    <input type="password" name="password" placeholder="Contraseña" required>
     <button type="submit">Registrar</button>
     <p>¿Ya tienes cuenta? <a href="index.php">Inicia sesión aquí</a></p>
 </form>

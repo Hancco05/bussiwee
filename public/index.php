@@ -4,7 +4,7 @@ include '../config/db.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $usuario = $_POST['usuario'];
-    $pass = $_POST['contrasena'];
+    $pass = $_POST['password'];
 
     // Caso especial: admin hardcodeado
     if ($usuario === "admin" && $pass === "1234") {
@@ -25,7 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($result->num_rows > 0) {
         $row = $result->fetch_assoc();
 
-        if (password_verify($pass, $row['contrasena'])) {
+        if (password_verify($pass, $row['password'])) {
             $_SESSION['usuario_id'] = $row['id'];
             $_SESSION['usuario_nombre'] = $row['usuario'];
             $_SESSION['usuario_rol'] = $row['rol'];
@@ -55,7 +55,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <body>
 <form method="post" action="">
     <input type="text" name="usuario" placeholder="Usuario" required>
-    <input type="password" name="contrasena" placeholder="Contraseña" required>
+    <input type="password" name="passwordS" placeholder="Contraseña" required>
     <button type="submit">Ingresar</button>
     <p>¿No tienes cuenta? <a href="registro.php">Regístrate aquí</a></p>
 </form>
