@@ -1,84 +1,73 @@
 <?php
 session_start();
-include '../config/db.php';
+require_once '../config/db.php';
 
-if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_rol'] !== 'admin') {
-    echo "⛔ Acceso denegado.";
-    exit;
+if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] != 'admin') {
+    header("Location: ../public/index.php");
+    exit();
 }
 
-// Eliminar usuario
-if (isset($_GET['delete'])) {
-    $id = intval($_GET['delete']);
-    if ($id != $_SESSION['usuario_id']) {
-        $stmt = $conn->prepare("DELETE FROM usuarios WHERE id=?");
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        echo "✅ Usuario eliminado.<br>";
-    } else {
-        echo "⚠️ No puedes eliminar tu propia cuenta.<br>";
-    }
-}
+$database = new Database();
+$db = $database->getConnection();
 
-// Cambiar rol
-if (isset($_GET['cambiar_rol'])) {
-    $id = intval($_GET['cambiar_rol']);
-    if ($id != $_SESSION['usuario_id']) {
-        $stmt = $conn->prepare("SELECT rol FROM usuarios WHERE id=?");
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $row = $result->fetch_assoc();
-        if ($row) {
-            $nuevoRol = ($row['rol']==='admin')?'usuario':'admin';
-            $stmt2 = $conn->prepare("UPDATE usuarios SET rol=? WHERE id=?");
-            $stmt2->bind_param("si", $nuevoRol, $id);
-            $stmt2->execute();
-            echo "✅ Rol cambiado a $nuevoRol.<br>";
-        }
-    } else {
-        echo "⚠️ No puedes cambiar tu propio rol.<br>";
-    }
-}
-
-// Obtener usuarios
-$result = $conn->query("SELECT id, usuario, rol FROM usuarios");
+// Obtener todos los usuarios
+$query = "SELECT * FROM usuarios ORDER BY fecha_creacion DESC";
+$stmt = $db->prepare($query);
+$stmt->execute();
+$usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="ISO-8859-1">
-    <title>Gestionar Usuarios</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios - Mi Proyecto</title>
     <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
-
-<div class="admin-container">
-    <h1>👥 Gestionar Usuarios</h1>
-    <table border="1" cellpadding="10">
-        <tr>
-            <th>ID</th><th>Usuario</th><th>Rol</th><th>Acciones</th>
-        </tr>
-        <?php while($row=$result->fetch_assoc()): ?>
-        <tr>
-            <td><?php echo $row['id'];?></td>
-            <td><?php echo htmlspecialchars($row['usuario'], ENT_QUOTES,'ISO-8859-1');?></td>
-            <td><?php echo $row['rol'];?></td>
-            <td>
-                <?php if($row['id'] != $_SESSION['usuario_id']): ?>
-                    <a href="?delete=<?php echo $row['id'];?>" onclick="return confirm('Eliminar usuario?')">❌ Eliminar</a> |
-                    <a href="?cambiar_rol=<?php echo $row['id'];?>" onclick="return confirm('Cambiar rol?')">🔄 Cambiar Rol</a>
-                <?php else: ?>
-                    (No puedes eliminarte ni cambiar tu propio rol)
-                <?php endif; ?>
-            </td>
-        </tr>
-        <?php endwhile;?>
-    </table>
-    <br>
-    <a href="admin_panel.php">⬅️ Volver al Panel de Administraci&oacute;n</a>
-</div>
-
+    <div class="dashboard-container">
+        <header>
+            <h1>Gestión de Usuarios</h1>
+            <nav>
+                <a href="admin_panel.php">Inicio</a>
+                <a href="gestionar_usuarios.php">Gestionar Usuarios</a>
+                <a href="logout.php">Cerrar Sesión</a>
+            </nav>
+        </header>
+        
+        <main>
+            <div class="users-management">
+                <h2>Lista de Usuarios</h2>
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Tipo</th>
+                            <th>Fecha Registro</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($usuarios as $usuario): ?>
+                        <tr>
+                            <td><?php echo $usuario['id']; ?></td>
+                            <td><?php echo $usuario['nombre']; ?></td>
+                            <td><?php echo $usuario['email']; ?></td>
+                            <td><?php echo $usuario['tipo_usuario']; ?></td>
+                            <td><?php echo $usuario['fecha_creacion']; ?></td>
+                            <td>
+                                <button class="btn-edit">Editar</button>
+                                <button class="btn-delete">Eliminar</button>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
 </body>
 </html>

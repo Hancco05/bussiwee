@@ -1,46 +1,37 @@
 <?php
 session_start();
-include '../config/db.php';
+require_once '../config/db.php';
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $usuario = $_POST['usuario'];
-    $pass = $_POST['password'];
-
-    // Caso especial: admin hardcodeado
-    if ($usuario === "admin" && $pass === "1234") {
-        $_SESSION['usuario_id'] = 0;
-        $_SESSION['usuario_nombre'] = "admin";
-        $_SESSION['usuario_rol'] = "admin";
-        header("Location: ../src/admin_panel.php");
-        exit;
-    }
-
-    // Buscar usuario en la BD
-    $sql = "SELECT * FROM usuarios WHERE usuario = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("s", $usuario);
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $database = new Database();
+    $db = $database->getConnection();
+    
+    $email = $_POST['email'];
+    $password = $_POST['password'];
+    
+    $query = "SELECT * FROM usuarios WHERE email = :email";
+    $stmt = $db->prepare($query);
+    $stmt->bindParam(':email', $email);
     $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-
-        if (password_verify($pass, $row['password'])) {
-            $_SESSION['usuario_id'] = $row['id'];
-            $_SESSION['usuario_nombre'] = $row['usuario'];
-            $_SESSION['usuario_rol'] = $row['rol'];
-
-            if ($row['rol'] === "admin") {
+    
+    if ($stmt->rowCount() == 1) {
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (password_verify($password, $user['password'])) {
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_name'] = $user['nombre'];
+            $_SESSION['user_type'] = $user['tipo_usuario'];
+            
+            if ($user['tipo_usuario'] == 'admin') {
                 header("Location: ../src/admin_panel.php");
             } else {
                 header("Location: ../src/dashboard.php");
             }
-            exit;
+            exit();
         } else {
-            $error = "? Contraseña incorrecta";
+            $error = "Contraseña incorrecta";
         }
     } else {
-        $error = "? Usuario no encontrado";
+        $error = "Usuario no encontrado";
     }
 }
 ?>
@@ -48,20 +39,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="ISO-8859-1">
-    <title>Login</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Mi Proyecto</title>
     <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
-<form method="post" action="">
-    <input type="text" name="usuario" placeholder="Usuario" required>
-    <input type="password" name="passwordS" placeholder="Contraseña" required>
-    <button type="submit">Ingresar</button>
-    <p>¿No tienes cuenta? <a href="registro.php">Regístrate aquí</a></p>
-</form>
-
-<?php if (isset($error)) : ?>
-    <p style="color:red;"><?php echo $error; ?></p>
-<?php endif; ?>
+    <div class="login-container">
+        <h2>Iniciar Sesión</h2>
+        <?php if (isset($error)): ?>
+            <div class="error"><?php echo $error; ?></div>
+        <?php endif; ?>
+        <form method="POST">
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label>Contraseña:</label>
+                <input type="password" name="password" required>
+            </div>
+            <button type="submit">Ingresar</button>
+        </form>
+        <p>¿No tienes cuenta? <a href="registro.php">Regístrate aquí</a></p>
+    </div>
 </body>
 </html>

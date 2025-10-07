@@ -1,26 +1,26 @@
 <?php
-include '../config/db.php';
+session_start();
+require_once '../config/db.php';
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $usuario = trim($_POST['usuario']);
-    $pass = trim($_POST['password']);
-
-    if (!empty($usuario) && !empty($pass)) {
-        $passHash = password_hash($pass, PASSWORD_BCRYPT);
-
-        $sql = "INSERT INTO usuarios (usuario, password, rol) VALUES (?, ?, 'usuario')";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ss", $usuario, $passHash);
-
-        if ($stmt->execute()) {
-            header("Location: index.php?registro=ok");
-            exit;
-        } else {
-            $error = "? Error al registrar: " . $conn->error;
-        }
-        $stmt->close();
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $database = new Database();
+    $db = $database->getConnection();
+    
+    $nombre = $_POST['nombre'];
+    $email = $_POST['email'];
+    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    
+    $query = "INSERT INTO usuarios (nombre, email, password) VALUES (:nombre, :email, :password)";
+    $stmt = $db->prepare($query);
+    $stmt->bindParam(':nombre', $nombre);
+    $stmt->bindParam(':email', $email);
+    $stmt->bindParam(':password', $password);
+    
+    if ($stmt->execute()) {
+        header("Location: index.php?registro=exitoso");
+        exit();
     } else {
-        $error = "?? Debes completar todos los campos.";
+        $error = "Error al registrar usuario";
     }
 }
 ?>
@@ -28,20 +28,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="ISO-8859-1">
-    <title>Registro</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - Mi Proyecto</title>
     <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
-<form method="post" action="">
-    <input type="text" name="usuario" placeholder="Usuario" required>
-    <input type="password" name="password" placeholder="Contraseña" required>
-    <button type="submit">Registrar</button>
-    <p>¿Ya tienes cuenta? <a href="index.php">Inicia sesión aquí</a></p>
-</form>
-
-<?php if (isset($error)) : ?>
-    <p style="color:red;"><?php echo $error; ?></p>
-<?php endif; ?>
+    <div class="login-container">
+        <h2>Registro de Usuario</h2>
+        <?php if (isset($error)): ?>
+            <div class="error"><?php echo $error; ?></div>
+        <?php endif; ?>
+        <form method="POST">
+            <div class="form-group">
+                <label>Nombre:</label>
+                <input type="text" name="nombre" required>
+            </div>
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label>Contraseña:</label>
+                <input type="password" name="password" required>
+            </div>
+            <button type="submit">Registrarse</button>
+        </form>
+        <p>¿Ya tienes cuenta? <a href="index.php">Inicia sesión aquí</a></p>
+    </div>
 </body>
 </html>

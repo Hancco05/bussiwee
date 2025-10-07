@@ -1,46 +1,39 @@
 <?php
 session_start();
-include '../config/db.php';
+require_once __DIR__ . "/../config/db.php";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $usuario = $_POST['usuario'];
-    $pass = $_POST['password'];
+    $usuario = trim($_POST["usuario"]);
+    $password = trim($_POST["password"]);
 
-    // Caso especial: admin hardcodeado
-    if ($usuario === "admin" && $pass === "1234") {
-        $_SESSION['usuario_id'] = 0;
-        $_SESSION['usuario_nombre'] = "admin";
-        $_SESSION['usuario_rol'] = "admin";
-        header("Location: admin_panel.php");
-        exit;
+    // Caso especial: admin "hardcodeado"
+    if ($usuario === "admin" && $password === "1234") {
+        $_SESSION["usuario"] = "admin";
+        $_SESSION["rol"] = "admin";
+        header("Location: ../src/admin_panel.php");
+        exit();
     }
 
-    // Caso normal: usuario desde BD
-    $sql = "SELECT * FROM usuarios WHERE usuario = ?";
-    $stmt = $conn->prepare($sql);
+    // Caso normal: validar usuario en la base de datos
+    $query = "SELECT id, usuario, contraseña, rol FROM usuarios WHERE usuario = ?";
+    $stmt = $conn->prepare($query);
     $stmt->bind_param("s", $usuario);
     $stmt->execute();
     $result = $stmt->get_result();
 
-    if ($result->num_rows > 0) {
+    if ($result->num_rows === 1) {
         $row = $result->fetch_assoc();
 
-        if (password_verify($pass, $row['password'])) {
-            $_SESSION['usuario_id'] = $row['id'];
-            $_SESSION['usuario_nombre'] = $row['usuario'];
-            $_SESSION['usuario_rol'] = $row['rol'];
-
-            if ($row['rol'] === "admin") {
-                header("Location: admin_panel.php");
-            } else {
-                header("Location: dashboard.php");
-            }
-            exit;
+        if (password_verify($password, $row["contraseña"])) {
+            $_SESSION["usuario"] = $row["usuario"];
+            $_SESSION["rol"] = $row["rol"] ?? "usuario";
+            header("Location: ../src/dashboard.php");
+            exit();
         } else {
-            echo "? Contraseña incorrecta";
+            $error = "Contraseña incorrecta.";
         }
     } else {
-        echo "? Usuario no encontrado";
+        $error = "Usuario no encontrado.";
     }
 }
 ?>
@@ -48,19 +41,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="ISO-8859-1">
+    <meta charset="UTF-8">
     <title>Login</title>
-    <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
-<div class="form-container">
-    <h2>Login</h2>
-    <form method="post">
-        <input type="text" name="usuario" placeholder="Usuario" required>
-        <input type="password" name="password" placeholder="Contraseña" required>
+    <h2>Iniciar Sesión</h2>
+    <?php if (!empty($error)) echo "<p style='color:red;'>$error</p>"; ?>
+    <form method="post" action="">
+        <label>Usuario:</label>
+        <input type="text" name="usuario" required><br><br>
+        <label>Contraseña:</label>
+        <input type="password" name="password" required><br><br>
         <button type="submit">Ingresar</button>
     </form>
-    <p>¿No tienes cuenta? <a href="../src/register.php">Regístrate aquí</a></p>
-</div>
+    <br>
+    <a href="../src/register.php">Registrarse</a>
 </body>
 </html>
