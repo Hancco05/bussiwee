@@ -1,47 +1,43 @@
 <?php
-require_once "../config/db.php";
+include '../config/db.php';
 
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $usuario = trim($_POST['usuario']);
-    $password = trim($_POST['password']);
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $usuario = $_POST['usuario'];
+    $pass = $_POST['password'];
 
-    if (!empty($usuario) && !empty($password)) {
-        $passwordHash = password_hash($password, PASSWORD_BCRYPT);
+    // Generar hash seguro
+    $passHash = password_hash($pass, PASSWORD_DEFAULT);
 
-        // Verificar si existe
-        $stmt = $conn->prepare("SELECT id FROM usuarios WHERE usuario=?");
-        $stmt->bind_param("s", $usuario);
-        $stmt->execute();
-        $result = $stmt->get_result();
+    // Insertar usuario en la BD con rol por defecto = usuario
+    $sql = "INSERT INTO usuarios (usuario, password, rol) VALUES (?, ?, 'usuario')";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ss", $usuario, $passHash);
 
-        if ($result->num_rows == 0) {
-            // Crear usuario normal (rol = usuario)
-            $stmt = $conn->prepare("INSERT INTO usuarios (usuario, password, rol) VALUES (?, ?, 'usuario')");
-            $stmt->bind_param("ss", $usuario, $passwordHash);
-            $stmt->execute();
-            $stmt->close();
-            $conn->close();
-
-            header("Location: ../public/index.php?registro=ok");
-            exit;
-        } else {
-            header("Location: ../public/index.php?error=Usuario ya existe");
-            exit;
-        }
+    if ($stmt->execute()) {
+        echo "? Usuario registrado correctamente";
+        echo "<br><a href='../public/index.php'>Ir al login</a>";
     } else {
-        header("Location: ../public/index.php?error=Completa todos los campos");
-        exit;
+        echo "? Error al registrar: " . $conn->error;
     }
 }
 ?>
 
-
-<form method="post">
-    <input type="text" name="usuario" placeholder="Usuario" required>
-    <input type="password" name="contraseña" placeholder="Contraseña" required>
-    <select name="rol" required>
-        <option value="usuario">Usuario</option>
-        <option value="admin">Administrador</option>
-    </select>
-    <button type="submit">Registrar</button>
-</form>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="ISO-8859-1">
+    <title>Registro</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="form-container">
+    <h2>Registro</h2>
+    <form method="post">
+        <input type="text" name="usuario" placeholder="Usuario" required>
+        <input type="password" name="password" placeholder="Contraseña" required>
+        <button type="submit">Registrar</button>
+    </form>
+    <p>¿Ya tienes cuenta? <a href="../public/index.php">Inicia sesión aquí</a></p>
+</div>
+</body>
+</html>
