@@ -50,6 +50,8 @@ $pedidos_recientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <a href="gestionar_productos.php">Productos</a>
                 <a href="gestionar_pedidos.php">Pedidos</a>
                 <a href="gestionar_categorias.php">Categorías</a>
+                <a href="sap_configuracion.php">Configuración SAP</a>
+                <a href="sincronizar_sap.php">Sincronizar SAP</a>
                 <a href="reportes.php">Reportes</a>
                 <a href="logout.php">Cerrar Sesión</a>
             </nav>
@@ -104,6 +106,11 @@ $pedidos_recientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <h3>📁 Gestión de Categorías</h3>
                         <p>Administra categorías de productos</p>
                         <a href="gestionar_categorias.php" class="btn">Gestionar Categorías</a>
+                    </div>
+                    <div class="feature-card admin">
+                        <h3>🔗 Integración SAP</h3>
+                        <p>Configuración y sincronización con SAP Business One</p>
+                        <a href="sap_configuracion.php" class="btn">Configurar SAP</a>
                     </div>
                     <div class="feature-card admin">
                         <h3>⚙️ Configuración</h3>

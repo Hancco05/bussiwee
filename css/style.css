@@ -415,3 +415,79 @@ nav a:hover {
         margin: 5px 0;
     }
 }
+/* SAP Configuration */
+.sap-config-form {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.form-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn-test {
+    background: #28a745;
+}
+
+.btn-test:hover {
+    background: #218838;
+}
+
+.sap-status {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid #007bff;
+}
+
+/* Sincronización */
+.sap-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.sync-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.sync-card {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.btn-sync {
+    background: #17a2b8;
+    width: auto;
+    margin-top: 15px;
+}
+
+.btn-sync:hover {
+    background: #138496;
+}
+
+.recent-sync {
+    margin-top: 30px;
+}
+
+/* Responsive SAP */
+@media (max-width: 768px) {
+    .form-buttons {
+        flex-direction: column;
+    }
+
+    .sync-actions {
+        grid-template-columns: 1fr;
+    }
+}
