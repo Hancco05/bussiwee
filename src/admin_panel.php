@@ -7,6 +7,10 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] != 'admin') {
     exit();
 }
 
+// Aplicar tema
+require_once 'theme_manager.php';
+$themeManager = new ThemeManager($_SESSION['user_id']);
+
 $database = new Database();
 $db = $database->getConnection();
 
@@ -39,11 +43,20 @@ $pedidos_recientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración - Mi Proyecto</title>
     <link rel="stylesheet" href="../css/style.css">
+    <?php echo $themeManager->applyTheme(); ?>
 </head>
 <body>
     <div class="dashboard-container">
         <header>
-            <h1>Panel de Administración</h1>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h1>Panel de Administración</h1>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <span>Bienvenido, <?php echo $_SESSION['user_name']; ?></span>
+                    <button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema">
+                        <?php echo $themeManager->isDarkMode() ? '☀️' : '🌙'; ?>
+                    </button>
+                </div>
+            </div>
             <nav>
                 <a href="admin_panel.php">Inicio</a>
                 <a href="gestionar_usuarios.php">Usuarios</a>
@@ -53,13 +66,15 @@ $pedidos_recientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <a href="sap_configuracion.php">Configuración SAP</a>
                 <a href="sincronizar_sap.php">Sincronizar SAP</a>
                 <a href="reportes.php">Reportes</a>
+                <a href="sap_web_access.php">SAP Web Access</a>
+                <a href="configuracion.php">Configuración</a>
                 <a href="logout.php">Cerrar Sesión</a>
             </nav>
         </header>
         
         <main>
             <div class="admin-info">
-                <h2>Bienvenido, Administrador <?php echo $_SESSION['user_name']; ?></h2>
+                <h2>Dashboard Principal</h2>
                 
                 <!-- Estadísticas -->
                 <div class="admin-stats">
@@ -106,6 +121,11 @@ $pedidos_recientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <h3>📁 Gestión de Categorías</h3>
                         <p>Administra categorías de productos</p>
                         <a href="gestionar_categorias.php" class="btn">Gestionar Categorías</a>
+                    </div>
+                    <div class="feature-card admin">
+                        <h3>🌐 SAP Web Access</h3>
+                        <p>Acceso web completo al sistema SAP</p>
+                        <a href="sap_web_access.php" class="btn">Abrir SAP Web</a>
                     </div>
                     <div class="feature-card admin">
                         <h3>🔗 Integración SAP</h3>
@@ -162,5 +182,65 @@ $pedidos_recientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
         </main>
     </div>
+
+    <script>
+    // Toggle rápido de tema
+    function toggleTheme() {
+        const currentTheme = document.body.classList.contains('theme-oscuro') ? 'oscuro' : 'claro';
+        const newTheme = currentTheme === 'oscuro' ? 'claro' : 'oscuro';
+        
+        // Cambiar clase del body
+        document.body.classList.remove('theme-claro', 'theme-oscuro');
+        document.body.classList.add('theme-' + newTheme);
+        
+        // Actualizar el icono del botón
+        const toggleBtn = document.querySelector('.theme-toggle');
+        toggleBtn.innerHTML = newTheme === 'oscuro' ? '☀️' : '🌙';
+        
+        // Guardar preferencia temporal (en un sistema real harías una llamada AJAX)
+        localStorage.setItem('theme-preference', newTheme);
+        
+        // Mostrar mensaje de confirmación
+        showThemeMessage(newTheme);
+    }
+    
+    function showThemeMessage(theme) {
+        // Crear mensaje temporal
+        const message = document.createElement('div');
+        message.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--accent-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 1000;
+            font-weight: bold;
+        `;
+        message.textContent = theme === 'oscuro' ? '🌙 Modo oscuro activado' : '☀️ Modo claro activado';
+        
+        document.body.appendChild(message);
+        
+        // Remover después de 2 segundos
+        setTimeout(() => {
+            document.body.removeChild(message);
+        }, 2000);
+    }
+    
+    // Cargar tema guardado al iniciar
+    document.addEventListener('DOMContentLoaded', function() {
+        const savedTheme = localStorage.getItem('theme-preference');
+        if (savedTheme) {
+            document.body.classList.remove('theme-claro', 'theme-oscuro');
+            document.body.classList.add('theme-' + savedTheme);
+            
+            const toggleBtn = document.querySelector('.theme-toggle');
+            if (toggleBtn) {
+                toggleBtn.innerHTML = savedTheme === 'oscuro' ? '☀️' : '🌙';
+            }
+        }
+    });
+    </script>
 </body>
 </html>
