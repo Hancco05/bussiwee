@@ -3,20 +3,31 @@ actualizar project php sql
 cambios con iso 8859-1
 
 /mi_proyecto/
-|-- /config/
-|   |-- db.php
-|-- /public/
-|   |-- index.php      (Login)
-|   |-- registro.php
-|-- /src/
-|   |-- login.php
-|   |-- register.php
-|   |-- dashboard.php
-|   |-- admin_panel.php
-|   |-- gestionar_usuarios.php
-|-- /css/
-|   |-- style.css
-
+??? /config/
+?   ??? db.php                 # Configuración base de datos
+??? /public/
+?   ??? index.php              # Login principal
+?   ??? registro.php           # Registro de usuarios
+??? /src/
+?   ??? admin_panel.php        # Panel administración
+?   ??? dashboard.php          # Panel usuario normal
+?   ??? gestionar_usuarios.php # CRUD usuarios
+?   ??? gestionar_productos.php # CRUD productos
+?   ??? gestionar_pedidos.php  # Gestión pedidos
+?   ??? gestionar_categorias.php # Categorías
+?   ??? configuracion.php      # Configuración sistema
+?   ??? sap_configuracion.php  # Config SAP
+?   ??? sap_web_access.php     # Acceso web SAP
+?   ??? sincronizar_sap.php    # Sincronización SAP
+?   ??? test_sap.php           # Pruebas SAP
+?   ??? theme_manager.php      # Gestor temas
+?   ??? reportes.php           # Reportes
+?   ??? productos.php          # Catálogo productos
+?   ??? mis_pedidos.php        # Pedidos usuario
+?   ??? perfil.php             # Perfil usuario
+?   ??? logout.php             # Cerrar sesión
+??? /css/
+    ??? style.css              # Estilos + temas
 
 update new!!
 
