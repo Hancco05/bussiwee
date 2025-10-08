@@ -25,56 +25,17 @@ class SAPConnection {
             return false;
         }
         
-        try {
-            // Para SAP Business One DI API (COM object en Windows)
-            if (class_exists('COM')) {
-                $this->conn = new COM("SAPbobsCOM.company");
-                $this->conn->Server = $this->config['sap_server'];
-                $this->conn->CompanyDB = $this->config['sap_company_db'];
-                $this->conn->UserName = $this->config['sap_username'];
-                $this->conn->Password = $this->config['sap_password'];
-                $this->conn->DbServerType = 9; // MSSQL
-                
-                $result = $this->conn->Connect();
-                
-                if ($result != 0) {
-                    $this->last_error = "Error conectando a SAP: " . $this->getSAPError($result);
-                    return false;
-                }
-                
-                $this->conn->Disconnect();
-                return true;
-            } else {
-                // Alternativa usando SAP RFC (sapnwrfc)
-                if (function_exists('sapnwrfc_open')) {
-                    $config = array(
-                        'ASHOST' => $this->config['sap_server'],
-                        'SYSNR'  => '00',
-                        'CLIENT' => '100',
-                        'USER'   => $this->config['sap_username'],
-                        'PASSWD' => $this->config['sap_password'],
-                        'LANG'   => 'ES'
-                    );
-                    
-                    $this->conn = sapnwrfc_open($config);
-                    
-                    if (!$this->conn) {
-                        $this->last_error = "Error conectando vía RFC";
-                        return false;
-                    }
-                    
-                    sapnwrfc_close($this->conn);
-                    return true;
-                } else {
-                    $this->last_error = "Extension SAP no disponible. Simulando conexión exitosa para demo.";
-                    // Para demo, retornamos true
-                    return true;
-                }
-            }
-        } catch (Exception $e) {
-            $this->last_error = $e->getMessage();
+        // Validamos que los campos de configuración no estén vacíos
+        if (empty($this->config['sap_server']) || empty($this->config['sap_company_db']) || 
+            empty($this->config['sap_username']) || empty($this->config['sap_password'])) {
+            $this->last_error = "Configuración SAP incompleta";
             return false;
         }
+        
+        // SIMULACIÓN: Para demo, siempre retornamos true si la configuración existe
+        // En producción, aquí iría la lógica real de conexión a SAP
+        $this->last_error = "Conexión simulada - Configuración válida detectada";
+        return true;
     }
     
     public function sincronizarPedido($pedido_id) {
@@ -103,9 +64,14 @@ class SAPConnection {
         }
         
         try {
-            // Simulación de creación de pedido en SAP
-            // En un entorno real, aquí iría la lógica para crear el pedido en SAP
+            // SIMULACIÓN: Creación de pedido en SAP
+            // En entorno real aquí iría: $this->conn->Connect() y lógica SAP
+            
+            // Generamos un número de documento SAP simulado
             $sap_doc_entry = "SO" . date('Ymd') . str_pad($pedido_id, 6, '0', STR_PAD_LEFT);
+            
+            // Registramos la sincronización
+            $this->logSincronizacion("Pedido {$pedido_id} sincronizado como {$sap_doc_entry}");
             
             // Actualizar pedido con referencia SAP
             $query = "UPDATE pedidos SET sap_doc_entry = :sap_doc_entry, sincronizado_sap = 1 WHERE id = :id";
@@ -116,12 +82,12 @@ class SAPConnection {
             if ($stmt->execute()) {
                 return $sap_doc_entry;
             } else {
-                $this->last_error = "Error al actualizar pedido";
+                $this->last_error = "Error al actualizar pedido en base de datos local";
                 return false;
             }
             
         } catch (Exception $e) {
-            $this->last_error = $e->getMessage();
+            $this->last_error = "Error en sincronización: " . $e->getMessage();
             return false;
         }
     }
@@ -136,17 +102,35 @@ class SAPConnection {
         $db = $database->getConnection();
         
         try {
-            // Simulación de obtención de productos desde SAP
-            // En un entorno real, aquí iría la lógica para obtener productos de SAP
+            // SIMULACIÓN: Obtención de productos desde SAP
+            // En entorno real aquí iría la conexión real a SAP
+            
+            // Productos de ejemplo que vendrían de SAP
             $productos_sap = array(
-                array('ItemCode' => 'P001', 'ItemName' => 'Laptop Gaming SAP', 'Price' => 1250.00),
-                array('ItemCode' => 'P002', 'ItemName' => 'Smartphone SAP', 'Price' => 850.00),
-                array('ItemCode' => 'P003', 'ItemName' => 'Tablet SAP', 'Price' => 450.00)
+                array(
+                    'ItemCode' => 'SAP-' . date('Ymd') . '-001', 
+                    'ItemName' => 'Laptop Gaming Professional', 
+                    'Price' => 1350.00,
+                    'Description' => 'Laptop para gaming y trabajo profesional - Sincronizado desde SAP'
+                ),
+                array(
+                    'ItemCode' => 'SAP-' . date('Ymd') . '-002', 
+                    'ItemName' => 'Smartphone Ultra', 
+                    'Price' => 899.00,
+                    'Description' => 'Smartphone última generación - Sincronizado desde SAP'
+                ),
+                array(
+                    'ItemCode' => 'SAP-' . date('Ymd') . '-003', 
+                    'ItemName' => 'Tablet Pro', 
+                    'Price' => 499.00,
+                    'Description' => 'Tablet profesional - Sincronizado desde SAP'
+                )
             );
             
             $sincronizados = 0;
+            
             foreach ($productos_sap as $producto_sap) {
-                // Verificar si el producto ya existe
+                // Verificar si el producto ya existe por código SAP
                 $query = "SELECT id FROM productos WHERE sap_code = :sap_code";
                 $stmt = $db->prepare($query);
                 $stmt->bindParam(':sap_code', $producto_sap['ItemCode']);
@@ -158,36 +142,80 @@ class SAPConnection {
                               VALUES (:nombre, :descripcion, :precio, :stock, :sap_code, 1)";
                     $stmt = $db->prepare($query);
                     $stmt->bindParam(':nombre', $producto_sap['ItemName']);
-                    $stmt->bindParam(':descripcion', $producto_sap['ItemName']);
+                    $stmt->bindParam(':descripcion', $producto_sap['Description']);
                     $stmt->bindParam(':precio', $producto_sap['Price']);
-                    $stmt->bindValue(':stock', 10);
+                    $stmt->bindValue(':stock', rand(5, 50));
                     $stmt->bindParam(':sap_code', $producto_sap['ItemCode']);
-                    $stmt->execute();
-                    $sincronizados++;
+                    
+                    if ($stmt->execute()) {
+                        $sincronizados++;
+                    }
                 }
             }
+            
+            $this->logSincronizacion("Productos sincronizados: {$sincronizados} nuevos");
             
             return $sincronizados;
             
         } catch (Exception $e) {
-            $this->last_error = $e->getMessage();
+            $this->last_error = "Error en sincronización de productos: " . $e->getMessage();
             return false;
         }
     }
     
-    private function getSAPError($error_code) {
-        $errors = array(
-            -1 => "Error general",
-            -2 => "Base de datos no encontrada",
-            -3 => "Usuario o contraseña incorrectos",
-            -4 => "Servidor no encontrado"
-        );
+    public function obtenerEstadoSAP() {
+        if (!$this->config) {
+            return array(
+                'estado' => 'no_configurado',
+                'mensaje' => 'Configuración SAP no encontrada'
+            );
+        }
         
-        return isset($errors[$error_code]) ? $errors[$error_code] : "Error desconocido: " . $error_code;
+        // Simulamos el estado del servidor SAP
+        $estado = 'conectado'; // Para demo, siempre conectado
+        
+        return array(
+            'estado' => 'conectado',
+            'mensaje' => 'Conexión SAP simulada - Funcionando correctamente',
+            'servidor' => $this->config['sap_server'],
+            'base_datos' => $this->config['sap_company_db'],
+            'ultima_sincronizacion' => date('Y-m-d H:i:s'),
+            'modo' => 'SIMULACIÓN'
+        );
+    }
+    
+    private function logSincronizacion($mensaje) {
+        // Guardar en archivo de log
+        $log_file = '../logs/sap_sync.log';
+        $timestamp = date('Y-m-d H:i:s');
+        $log_entry = "[{$timestamp}] {$mensaje}\n";
+        
+        // Crear directorio de logs si no existe
+        if (!is_dir('../logs')) {
+            mkdir('../logs', 0755, true);
+        }
+        
+        file_put_contents($log_file, $log_entry, FILE_APPEND | LOCK_EX);
     }
     
     public function getLastError() {
         return $this->last_error;
+    }
+    
+    public function getEstadisticasSincronizacion() {
+        require_once '../config/db.php';
+        $database = new Database();
+        $db = $database->getConnection();
+        
+        $query = "SELECT 
+                    COUNT(*) as total_pedidos,
+                    SUM(sincronizado_sap) as pedidos_sincronizados,
+                    (SELECT COUNT(*) FROM productos WHERE sap_code IS NOT NULL) as productos_con_sap
+                  FROM pedidos";
+        $stmt = $db->prepare($query);
+        $stmt->execute();
+        
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 }
 ?>
